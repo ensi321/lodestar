@@ -25,6 +25,7 @@ import {
   deneb,
   Wei,
   bellatrix,
+  Gwei,
 } from "@lodestar/types";
 import {CheckpointWithHex, ExecutionStatus, IForkChoice, ProtoBlock} from "@lodestar/fork-choice";
 import {ProcessShutdownCallback} from "@lodestar/validator";
@@ -75,6 +76,7 @@ import {BlockAttributes, produceBlockBody} from "./produceBlock/produceBlockBody
 import {computeNewStateRoot} from "./produceBlock/computeNewStateRoot.js";
 import {BlockInput} from "./blocks/types.js";
 import {SeenAttestationDatas} from "./seenCache/seenAttestationData.js";
+import {computeBlockRewards} from "./rewards/blockRewards.js";
 
 /**
  * Arbitrary constants, blobs and payloads should be consumed immediately in the same slot
@@ -899,6 +901,25 @@ export class BeaconChain implements IBeaconChain {
       } else {
         this.logger.verbose("Execution builder status", builderLog);
       }
+    }
+  }
+
+  async getBlockRewards(blockRef: RootHex | Slot | allForks.FullOrBlindedBeaconBlock): Promise<Gwei> {
+    let block;
+    if (typeof blockRef === "string") {
+      block = (await this.getBlockByRoot(blockRef))?.block.message;
+    } else if (typeof blockRef === "number") {
+      block = (await this.getCanonicalBlockAtSlot(blockRef))?.block.message;
+    } else {
+      block = blockRef;
+    }
+
+    if (block) {
+      const preState = await this.regen.getPreState(block, {dontTransferCache: true}, RegenCaller.restApi);
+      return computeBlockRewards(block, preState);
+    } else {
+      this.logger.warn(`Attempt to get rewards for a block that is not found: ${blockRef}`);
+      return 0n;
     }
   }
 }
