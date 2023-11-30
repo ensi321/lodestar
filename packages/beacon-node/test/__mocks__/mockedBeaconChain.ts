@@ -77,6 +77,7 @@ vi.mock("../../src/chain/index.js", async (requireActual) => {
       beaconProposerCache: new BeaconProposerCache(),
       produceBlock: vi.fn(),
       produceBlindedBlock: vi.fn(),
+      getBlockRewards: vi.fn(),
       getCanonicalBlockAtSlot: vi.fn(),
       recomputeForkChoiceHead: vi.fn(),
       getHeadStateAtCurrentEpoch: vi.fn(),
