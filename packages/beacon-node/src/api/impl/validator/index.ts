@@ -508,16 +508,17 @@ export function getValidatorApi({
             delayMs,
             cutoffMs: BLOCK_PRODUCTION_RACE_CUTOFF_MS,
             timeoutMs: BLOCK_PRODUCTION_RACE_TIMEOUT_MS,
+            slot,
           });
         }
       );
       if (blindedBlock instanceof Error) {
         // error here means race cutoff exceeded
-        logger.error("Failed to produce builder block", {}, blindedBlock);
+        logger.error("Failed to produce builder block", {slot}, blindedBlock);
         blindedBlock = null;
       }
       if (fullBlock instanceof Error) {
-        logger.error("Failed to produce execution block", {}, fullBlock);
+        logger.error("Failed to produce execution block", {slot}, fullBlock);
         fullBlock = null;
       }
     } else if (blindedBlockPromise !== null && fullBlockPromise === null) {
@@ -574,6 +575,7 @@ export function getValidatorApi({
         // winston logger doesn't like bigint
         enginePayloadValue: `${enginePayloadValue}`,
         consensusBlockValue: `${consensusBlockValue}`,
+        slot,
       });
     } else if (blindedBlock && !fullBlock) {
       selectedSource = ProducedBlockSource.builder;
@@ -581,11 +583,12 @@ export function getValidatorApi({
         // winston logger doesn't like bigint
         builderPayloadValue: `${builderPayloadValue}`,
         consensusBlockValue: `${consensusBlockValue}`,
+        slot,
       });
     }
 
     if (selectedSource === null) {
-      throw Error("Failed to produce engine or builder block");
+      throw Error(`Failed to produce engine or builder block for slot=${slot}`);
     }
 
     if (selectedSource === ProducedBlockSource.engine) {
