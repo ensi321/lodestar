@@ -1,5 +1,5 @@
 import path from "node:path";
-import {CompositeTypeAny, fromHexString, TreeView, Type} from "@chainsafe/ssz";
+import {CompositeTypeAny, fromHexString, toHexString, TreeView, Type} from "@chainsafe/ssz";
 import {
   BeaconStateAllForks,
   CachedBeaconStateAllForks,
@@ -966,7 +966,7 @@ export class BeaconChain implements IBeaconChain {
     }
 
     if (block !== undefined) {
-      const preState = await this.regen.getPreState(block, {dontTransferCache: true}, RegenCaller.restApi);
+      const preState = await this.regen.getBlockSlotState(toHexString(block.parentRoot), block.slot, {dontTransferCache: true}, RegenCaller.restApi);
       return computeBlockRewards(block, preState);
     } else {
       // Only RootHex | Slot can reach this code segment
